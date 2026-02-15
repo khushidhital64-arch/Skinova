@@ -1,0 +1,16 @@
+/* Tailwind core */
+@import "tailwindcss";
+
+
+
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: white;
+  color: #e2e8f0; /* slate-200 */
+}
