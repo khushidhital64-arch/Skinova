@@ -14,6 +14,12 @@ import Blog from "./Adminpages/Blog";
 import Community from "./Adminpages/Community";
 import Orders from "./Adminpages/Orders";
 import Analytics from "./Adminpages/Analytics";
+import ProductDetail from "./Pages/ProductDetail";
+import CartPage from "./Pages/CartPage";
+import BlogList from "./Pages/BlogPage";
+import BlogDetails from "./Pages/BlogDetails";
+import UserDashboard from "./Pages/UserDashboard";
+import Recommended from "./Pages/Recommended";
 
 const App = () => {
   return (
@@ -23,15 +29,25 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
+        <Route path="/product/:id" element={<ProductDetail />} />
+        <Route path="/cart" element={<CartPage />} />
+               <Route path="/userdashboard" element={<UserDashboard />} />
+                 <Route path="/recommend" element={<Recommended />} />
+
+        <Route path="/blogs" element={<BlogList />} />
+        <Route path="/blogs/:id" element={<BlogDetails />} />
 
 
-         <Route path="/admin" element={<AdminDashboard />} />
+
+
+
+
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/analytics" element={<Analytics />} />
         <Route path="/admin/products" element={<Products />} />
         <Route path="/admin/blog" element={<Blog />} />
         <Route path="/admin/community" element={<Community />} />
         <Route path="/admin/orders" element={<Orders />} />
-       
       </Routes>
     </Router>
   );
