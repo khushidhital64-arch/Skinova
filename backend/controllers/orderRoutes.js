@@ -2,13 +2,14 @@ import express from "express";
 import authenticate from "../middleware/authenticate.js";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
+import CryptoJS from "crypto-js";
 
 const router = express.Router();
 
 /* ================= CREATE ORDER (CASH / ONLINE) ================= */
 router.post("/checkout", authenticate, async (req, res) => {
   try {
-    const { cartItems, paymentMethod } = req.body;
+    const { cartItems, paymentMethod ,paymentTransactionUuid} = req.body;
 
     if (!cartItems || cartItems.length === 0) {
       return res.status(400).json({ message: "Cart is empty" });
@@ -40,17 +41,21 @@ router.post("/checkout", authenticate, async (req, res) => {
 
     // Save order
     const order = await Order.create({
-      user: req.user._id,
-      items: cartItems.map((item) => ({
-        product: item._id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        imageUrl: item.imageUrl,
-      })),
-      totalAmount,
-      paymentMethod,
-    });
+  user: req.user._id,
+  items: cartItems.map((item) => ({
+    product: item._id,
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity,
+    imageUrl: item.imageUrl,
+  })),
+  totalAmount,
+  paymentMethod,
+  paymentTransactionUuid: paymentMethod === "online"
+    ? paymentTransactionUuid
+    : null,
+});
+
 
     res.status(201).json({
       success: true,
@@ -78,5 +83,85 @@ router.get("/my-orders", authenticate, async (req, res) => {
     res.status(500).json({ message: "Failed to fetch orders" });
   }
 });
+
+
+
+
+router.post("/paymentverify/:data", authenticate, async (req, res) => {
+  console.log("🔥 PAYMENT VERIFY ROUTE HIT");
+  try {
+    const { data } = req.params;
+
+    // Decode Base64 data
+    const decodedString = Buffer.from(data, "base64").toString("utf8");
+    const decoded = JSON.parse(decodedString);
+
+    // Build hash string
+    const hashString =
+      `transaction_code=${decoded.transaction_code},` +
+      `status=${decoded.status},` +
+      `total_amount=${decoded.total_amount},` +
+      `transaction_uuid=${decoded.transaction_uuid},` +
+      `product_code=${decoded.product_code},` +
+      `signed_field_names=${decoded.signed_field_names}`;
+
+    const secret = "8gBm/:&EnhH.1/q";
+    const hash = CryptoJS.HmacSHA256(hashString, secret);
+    const serverSig = CryptoJS.enc.Base64.stringify(hash);
+
+
+    if (serverSig !== decoded.signature) {
+      return res.status(400).json({
+        success: false,
+        message: "INVALID SIGNATURE",
+      });
+    }
+
+
+    if (decoded.status !== "COMPLETE") {
+      return res.status(400).json({
+        success: false,
+        message: "Payment not completed",
+      });
+    }
+
+
+    const order = await Order.findOne({
+      paymentTransactionUuid: decoded.transaction_uuid,
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+ 
+    if (order.paymentStatus === "paid") {
+      return res.json({
+        success: true,
+        message: "Payment already verified",
+        order,
+      });
+    }
+
+    // ✅ UPDATE ORDER
+    order.paymentStatus = "paid";
+    order.orderStatus = "processing"; // or confirmed
+    await order.save();
+
+    return res.json({
+      success: true,
+      message: "Payment verified & order updated",
+      order,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 export default router;
