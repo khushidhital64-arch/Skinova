@@ -4,6 +4,16 @@ import cors from "cors";
 import { connectdb } from "./DBconfig/db.js";
 
 import userroutes from "./controllers/registerController.js";
+import productRoutes from "./controllers/ProductController.js";
+import blogRoutes from "./controllers/BlogController.js";
+import userRoutes from "./controllers/userRoutes.js";
+
+import orderRoutes from "./controllers/orderRoutes.js";
+import progressroutes from "./controllers/progressRoutes.js";
+import postRoutes from "./controllers/postRoutes.js";
+
+
+
 dotenv.config();
 
 const app = express();
@@ -22,6 +32,12 @@ app.use(express.json());
 
 /* ---------- Routes ---------- */
 app.use("/api/users", userroutes);
+app.use("/api/products", productRoutes);
+app.use("/api/blogs", blogRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/progress",progressroutes)
+app.use("/api/post",postRoutes)
 
 app.get("/", (req, res) => {
   res.send("API is running...");
