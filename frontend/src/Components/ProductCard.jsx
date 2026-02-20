@@ -1,15 +1,49 @@
 import { useNavigate } from "react-router-dom";
 import { CartContext } from "../context/CartContext";
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 
-export default function ProductCard({ _id, name, category, imageUrl, price, description, concerns, skinType, stock }) {
-  const navigate = useNavigate(); 
-    const { addToCart } = useContext(CartContext);
+export default function ProductCard({
+  _id,
+  name,
+  category,
+  imageUrl,
+  price,
+  description,
+  concerns,
+  skinType,
+  stock,
+}) {
+  const navigate = useNavigate();
+  const { addToCart } = useContext(CartContext);
+
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  // Check if this product is already in wishlist
+  useEffect(() => {
+    const wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+    setIsFavorite(wishlist.includes(_id));
+  }, [_id]);
+
+  const handleToggleFavorite = (e) => {
+    e.stopPropagation(); // prevent navigate when clicking heart
+
+    let wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+
+    if (wishlist.includes(_id)) {
+      wishlist = wishlist.filter((id) => id !== _id);
+      setIsFavorite(false);
+    } else {
+      wishlist.push(_id);
+      setIsFavorite(true);
+    }
+
+    localStorage.setItem("wishlist", JSON.stringify(wishlist));
+  };
 
   return (
     <div
       className="bg-white rounded-xl shadow-sm p-4 relative cursor-pointer hover:shadow-lg transition"
-      onClick={() => navigate(`/product/${_id}`)} 
+      onClick={() => navigate(`/product/${_id}`)}
     >
       {/* Product Image */}
       <div className="h-48 rounded-lg mb-4 relative overflow-hidden">
@@ -20,8 +54,15 @@ export default function ProductCard({ _id, name, category, imageUrl, price, desc
         />
 
         {/* Heart Icon */}
-        <span className="absolute top-3 right-3 bg-white p-2 rounded-full shadow">
-          <i className="bi bi-heart text-pink-500 text-lg"></i>
+        <span
+          className="absolute top-3 right-3 bg-white p-2 rounded-full shadow cursor-pointer"
+          onClick={handleToggleFavorite}
+        >
+          <i
+            className={`bi text-lg ${
+              isFavorite ? "bi-heart-fill text-red-500" : "bi-heart text-pink-500"
+            }`}
+          ></i>
         </span>
 
         {/* Out of Stock Badge */}
@@ -59,13 +100,16 @@ export default function ProductCard({ _id, name, category, imageUrl, price, desc
         Rs:{price.toFixed(2)}
       </div>
 
-      {/* Button */}
+      {/* Add to Cart Button */}
       <button
         className={`mt-4 w-full py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
           stock === 0 ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "bg-pink-100 text-black"
         }`}
         disabled={stock === 0}
-        onClick={() => addToCart({ _id, name, category, imageUrl, price, stock })}
+        onClick={(e) => {
+          e.stopPropagation(); // prevent navigate
+          addToCart({ _id, name, category, imageUrl, price, stock });
+        }}
       >
         <i className="bi bi-cart-fill"></i>
         {stock === 0 ? "Out of Stock" : "Add to Cart"}
