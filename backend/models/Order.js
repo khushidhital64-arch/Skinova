@@ -36,10 +36,21 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: "pending",
     },
+  finalAmount: {
+      type: Number, 
+    },
 
+    usedPoints: {
+      type: Boolean,
+      default: false,
+    },
     orderStatus: {
       type: String,
       default: "processing",
+    },
+    paymentTransactionUuid: {
+      type: String,
+     
     },
   },
   { timestamps: true }
