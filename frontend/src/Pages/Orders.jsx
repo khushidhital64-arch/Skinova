@@ -54,6 +54,7 @@ const Orders = () => {
                 <th className="p-4">Products</th>
                 <th className="p-4">Total</th>
                 <th className="p-4">Status</th>
+           
               </tr>
             </thead>
 
@@ -66,16 +67,14 @@ const Orders = () => {
                 >
                   
                   {/* Order ID */}
-                  <td className="p-4 font-light">
-                    #{order._id.slice(-6)}
-                  </td>
+                  <td className="p-4 font-light">#{order._id.slice(-6)}</td>
 
                   {/* Date */}
                   <td className="p-4">
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
 
-                  {/* Products with Images */}
+                  {/* Products */}
                   <td className="p-4">
                     <div className="space-y-3">
                       {order.items.map((item, index) => (
@@ -86,9 +85,7 @@ const Orders = () => {
                             className="w-14 h-14 object-contain rounded-lg border"
                           />
                           <div>
-                            <p className="font-medium">
-                              {item.name}
-                            </p>
+                            <p className="font-medium">{item.name}</p>
                             <p className="text-xs text-gray-500">
                               Qty {item.quantity} × Rs {item.price}
                             </p>
@@ -99,9 +96,14 @@ const Orders = () => {
                   </td>
 
                   {/* Total */}
-                  <td className="p-4 font-semibold">
-                    Rs {order.totalAmount}
-                  </td>
+                 <td className="p-4 font-semibold flex  items-center gap-2">
+  Rs {order.finalAmount ? order.finalAmount : order.totalAmount}
+  {order.usedPoints && (
+    <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-black">
+       Skinovapoint
+    </span>
+  )}
+</td>
 
                   {/* Status */}
                   <td className="p-4">
@@ -117,6 +119,7 @@ const Orders = () => {
                       {order.orderStatus}
                     </span>
                   </td>
+
 
                 </tr>
               ))}
