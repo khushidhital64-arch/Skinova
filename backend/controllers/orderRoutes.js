@@ -7,20 +7,25 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
+
 /* ================= CREATE ORDER (CASH / ONLINE) ================= */
+
 router.post("/checkout", authenticate, async (req, res) => {
   try {
-    const { cartItems, paymentMethod, paymentTransactionUuid } = req.body;
+    const { cartItems, paymentMethod, paymentTransactionUuid, usedPoints } = req.body;
 
     if (!cartItems || cartItems.length === 0) {
       return res.status(400).json({ message: "Cart is empty" });
     }
 
     // Calculate total
-    const totalAmount = cartItems.reduce(
+    let totalAmount = cartItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
-      0,
+      0
     );
+
+    // Apply 10% discount if user used points
+    let finalAmount = usedPoints ? totalAmount * 0.9 : totalAmount;
 
     // Reduce product stock
     for (let item of cartItems) {
@@ -40,7 +45,7 @@ router.post("/checkout", authenticate, async (req, res) => {
       await product.save();
     }
 
-    // Save order
+    // Create order
     const order = await Order.create({
       user: req.user._id,
       items: cartItems.map((item) => ({
@@ -51,15 +56,26 @@ router.post("/checkout", authenticate, async (req, res) => {
         imageUrl: item.imageUrl,
       })),
       totalAmount,
+      finalAmount,
       paymentMethod,
+      usedPoints: usedPoints || false, // save whether points were used
       paymentTransactionUuid:
         paymentMethod === "online" ? paymentTransactionUuid : null,
     });
-    // ==== Add 100 points to user ====
+
+    // Points logic
+    const earnedPoints = 100; // points earned for every purchase
+    const pointsToDeduct = usedPoints ? 1000 : 0; // points spent if discount applied
+
     await User.findByIdAndUpdate(
       req.user._id,
-      { $inc: { Skinovapoint: 100 } }, // Increment points by 100
-      { new: true } // return updated user (optional)
+      {
+        $inc: {
+          UseSkinovapoint: earnedPoints - pointsToDeduct, // add 100 points, subtract 1000 if used
+          Skinovapoint: earnedPoints, // total points for badge
+        },
+      },
+      { new: true }
     );
 
     res.status(201).json({
@@ -72,6 +88,7 @@ router.post("/checkout", authenticate, async (req, res) => {
     res.status(500).json({ message: "Checkout failed" });
   }
 });
+
 
 /* ================= GET LOGGED-IN USER ORDERS ================= */
 router.get("/my-orders", authenticate, async (req, res) => {
