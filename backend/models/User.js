@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema(
     skinType: { type: String, required: true },
     skinConcern: { type: [String], required: true },
        address: { type: String },
-       Skinovapoint: { type: Number },
+     Skinovapoint: { type: Number, default: 0 },
+      UseSkinovapoint: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
