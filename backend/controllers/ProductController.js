@@ -1,23 +1,58 @@
 import express from "express";
 import Product from "../models/Product.js";
+import multer from "multer";
 
 const router = express.Router();
 
-//////////////////////////////////////////////////////
-// CREATE PRODUCT
-//////////////////////////////////////////////////////
+const storage = multer.memoryStorage(); // store in buffer
+const upload = multer({ storage: storage });
 
-router.post("/", async (req, res) => {
+router.post("/add", upload.single("image"), async (req, res) => {
   try {
-    const product = await Product.create(req.body);
+    const {
+      name,
+      price,
+      stock,
+      description,
+      ingredients,
+      category,
+    } = req.body;
 
-    res.status(201).json(product);
+    const newProduct = new Product({
+      name,
+      price,
+      stock,
+      description,
+      ingredients,
+      category,
+
+      skinType: Array.isArray(req.body.skinType)
+        ? req.body.skinType
+        : req.body.skinType
+        ? [req.body.skinType]
+        : [],
+
+      concerns: Array.isArray(req.body.concerns)
+        ? req.body.concerns
+        : req.body.concerns
+        ? [req.body.concerns]
+        : [],
+
+      imageUrl: {
+        data: req.file.buffer,
+        contentType: req.file.mimetype,
+      },
+    });
+
+    await newProduct.save();
+
+    res.status(201).json({ message: "Product Added Successfully" });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.log(error);
+    res.status(500).json({ message: "Server Error" });
   }
 });
-
 //////////////////////////////////////////////////////
 // BULK INSERT
 //////////////////////////////////////////////////////
@@ -37,11 +72,28 @@ router.post("/bulk", async (req, res) => {
 // GET ALL PRODUCTS
 //////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////
+// GET ALL PRODUCTS (Convert Buffer → Base64)
+//////////////////////////////////////////////////////
+
 router.get("/", async (req, res) => {
   try {
     const products = await Product.find();
 
-    res.json(products);
+    const productsWithImages = products.map((product) => {
+      let imageBase64 = null;
+
+      if (product.imageUrl?.data) {
+        imageBase64 = `data:${product.imageUrl.contentType};base64,${product.imageUrl.data.toString("base64")}`;
+      }
+
+      return {
+        ...product._doc,
+        imageUrl: imageBase64, // 🔥 send base64 instead of buffer
+      };
+    });
+
+    res.json(productsWithImages);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
