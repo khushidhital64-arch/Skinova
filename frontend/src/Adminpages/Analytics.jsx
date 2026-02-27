@@ -2,6 +2,18 @@ import React, { useEffect, useState } from "react";
 import { IndianRupee, ShoppingCart, Users, Package, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Bar, Pie } from "react-chartjs-2";
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -39,7 +51,7 @@ const Dashboard = () => {
       const res = await axios.get("http://localhost:3001/api/orders/all", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setOrders(res.data);
+      setOrders(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
     }
@@ -51,7 +63,7 @@ const Dashboard = () => {
       const res = await axios.get("http://localhost:3001/api/users/all", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUsers(res.data);
+      setUsers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
     }
@@ -61,7 +73,7 @@ const Dashboard = () => {
   const fetchProducts = async () => {
     try {
       const res = await axios.get("http://localhost:3001/api/products");
-      setProducts(res.data);
+      setProducts(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
     }
@@ -85,13 +97,54 @@ const Dashboard = () => {
     }
   };
 
-  return (
-    <div className="p-6 space-y-5">
-      {/* ================= HEADER ================= */}
-  <h1 className="font-serif text-[clamp(38px,6vw,20px)] leading-tight mb-6 text-[#1A0A0E]">
-          Admin <span className=" text-[#C9536A]">Dashboard</span> 
-        </h1>
+  /* ================= LAST 7 DAYS ORDERS ================= */
+  const last7DaysOrders = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const day = date.toISOString().slice(0, 10);
+    const count = orders.filter((o) => o?.createdAt?.slice(0, 10) === day).length;
+    return { day, count };
+  }).reverse();
+
+  const last7DaysOrdersChart = {
+    labels: last7DaysOrders.map((o) => o.day),
+    datasets: [
+      {
+        label: "Orders",
+        data: last7DaysOrders.map((o) => o.count),
+        backgroundColor: "#C9536A",
+      },
+    ],
+  };
+
+  /* ================= MONTHLY EARNINGS ================= */
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const monthlyEarningsMap = {};
+  orders.forEach((o) => {
+    if (o?.createdAt) {
+      const month = new Date(o.createdAt).getMonth();
+      monthlyEarningsMap[month] = (monthlyEarningsMap[month] || 0) + (o.totalAmount || 0);
+    }
+  });
+  const monthlyEarningsChart = {
+    labels: monthNames,
+    datasets: [
+      {
+        label: "Revenue (Rs)",
+        data: monthNames.map((_, idx) => monthlyEarningsMap[idx] || 0),
+        backgroundColor: "#F472B6",
+      },
+    ],
+  };
+
  
+
+  return (
+    <div className="p-6 space-y-6 font-sans text-gray-800">
+      {/* ================= HEADER ================= */}
+      <h1 className="text-[clamp(38px,6vw,24px)] font-bold">
+        Admin <span className="text-[#C9536A]">Dashboard</span>
+      </h1>
 
       {/* ================= STATS CARDS ================= */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -128,7 +181,20 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* ================= TOP ORDERS ================= */}
+      {/* ================= CHARTS ================= */}
+      <div className=" rounded-xl shadow p-6 flex flex-col md:flex-row gap-6 overflow-x-auto">
+        <div className="flex-1 min-w-[300px]">
+          <h3 className="font-semibold mb-2">Monthly Earnings</h3>
+          <Bar data={monthlyEarningsChart} />
+        </div>
+        <div className="flex-1 min-w-[300px]">
+          <h3 className="font-semibold mb-2">Last 7 Days Orders</h3>
+          <Bar data={last7DaysOrdersChart} />
+        </div>
+       
+      </div>
+
+      {/* ================= RECENT ORDERS ================= */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-700">Recent Orders</h2>
@@ -152,16 +218,16 @@ const Dashboard = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {orders.slice(0, 5).map((order) => (
                 <tr key={order._id} className="hover:bg-pink-50 transition">
-                  <td className="px-6 py-4 font-medium text-gray-900">{order.user?.name}</td>
+                  <td className="px-6 py-4 font-medium text-gray-900">{order.user?.name || "Unknown"}</td>
                   <td className="px-6 py-4 text-gray-700">
-                    {order.items.map((item, idx) => (
+                    {order.items?.map((item, idx) => (
                       <span key={idx} className="mr-2">{item.name} x {item.quantity}</span>
                     ))}
                   </td>
-                  <td className="px-6 py-4 text-gray-700">Rs {order.totalAmount}</td>
+                  <td className="px-6 py-4 text-gray-700">Rs {order.totalAmount || 0}</td>
                   <td className="px-6 py-4">
                     <span className={statusBadge(order.orderStatus)}>
-                      {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
+                      {order.orderStatus?.charAt(0).toUpperCase() + order.orderStatus?.slice(1)}
                     </span>
                   </td>
                 </tr>
@@ -177,7 +243,7 @@ const Dashboard = () => {
           <h2 className="text-xl font-semibold text-gray-700">Top Users</h2>
           <button
             onClick={() => navigate("/admin/users")}
-            className="flex items-center gap-1 text-[#C9536A]  hover:underline"
+            className="flex items-center gap-1 text-[#C9536A] hover:underline"
           >
             View All <Eye size={16} />
           </button>
@@ -208,7 +274,7 @@ const Dashboard = () => {
           <h2 className="text-xl font-semibold text-gray-700">Top Products</h2>
           <button
             onClick={() => navigate("/admin/products")}
-            className="flex items-center gap-1 text-[#C9536A]  hover:underline"
+            className="flex items-center gap-1 text-[#C9536A] hover:underline"
           >
             View All <Eye size={16} />
           </button>
