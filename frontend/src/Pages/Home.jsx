@@ -17,10 +17,11 @@ const Home = () => {
   const [blogLoading, setBlogLoading] = useState(true);
 
   const videoIds = [
-  "UyBMKPlEw0U",
-  "UyBMKPlEw0U",
-  "UyBMKPlEw0U"
-];
+    "UyBMKPlEw0U",
+    "UyBMKPlEw0U",
+    "UyBMKPlEw0U"
+  ];
+
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -58,16 +59,16 @@ const Home = () => {
       <HeroSectionReview />
       <HeroSection />
 
-      {/* Explore Our Collection */}
+      {/* Top Picks */}
       <section className="container mx-auto p-4 mb-20">
         <div className="flex justify-between items-end mb-12 flex-col md:flex-row gap-6">
           <div>
             <div className="text-xs tracking-[4px] uppercase text-[#C9536A] mb-2 flex items-center gap-3 font-[Britannic]">
               <span className="w-6 h-[1px] bg-[#C9536A]"></span>
-              EXPLORE
+              MOST LOVED
             </div>
             <h2 className="font-[Britannic] text-[20px] md:text-[24px] leading-tight text-[#1A0A0E] uppercase">
-              Explore Our Collection
+              Top Picks📌
             </h2>
           </div>
           <button
@@ -84,7 +85,7 @@ const Home = () => {
           <p>Loading products...</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.slice(0, 4).map((product) => (
+            {products.slice(4, 8).map((product) => (
               <HomeProductComponent
                 key={product._id}
                 _id={product._id}
@@ -97,16 +98,16 @@ const Home = () => {
         )}
       </section>
 
-      {/* Shop Our Best Sellers */}
+      {/* Browse Our Picks */}
       <section className="container mx-auto p-4 mb-20">
         <div className="flex justify-between items-end mb-12 flex-col md:flex-row gap-6">
           <div>
             <div className="text-xs tracking-[4px] uppercase text-[#C9536A] mb-2 flex items-center gap-3 font-[Britannic]">
               <span className="w-6 h-[1px] bg-[#C9536A]"></span>
-              BESTSELLERS
+              BROWSE
             </div>
             <h2 className="font-[Britannic] text-[20px] md:text-[24px] leading-tight text-[#1A0A0E] uppercase">
-              Shop Our Best Sellers
+              Browse Our Collection
             </h2>
           </div>
           <button
@@ -123,7 +124,7 @@ const Home = () => {
           <p>Loading products...</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.slice(5, 9).map((product) => (
+            {products.slice(26, 30).map((product) => (
               <HomeProductComponent
                 key={product._id}
                 _id={product._id}
@@ -137,14 +138,14 @@ const Home = () => {
       </section>
 
     {/* Latest Blogs */}
-<section className="container mx-auto px-4 mb-24">
+<section className="container mx-auto px-4 mb-20">
   <div className="flex justify-between items-end mb-14 flex-col md:flex-row gap-6">
     <div>
       <div className="text-xs tracking-[4px] uppercase text-[#C9536A] mb-2">
-        LATEST
+        TRENDING NOW💖
       </div>
-      <h2 className="text-3xl font-serif text-[#1A0A0E]">
-        Latest Blogs
+      <h2 className="text-2xl font-serif text-[#1A0A0E]">
+        BEAUTY INSIGHTS
       </h2>
     </div>
 
@@ -210,19 +211,20 @@ const Home = () => {
   )}
 </section>
 
-<section className="container mx-auto px-4 mb-24">
+{/* Beauty Guides*/}
+<section className="container mx-auto px-4 mb-20">
   <div className="flex justify-between items-end mb-14 flex-col md:flex-row gap-6">
     <div>
       <div className="text-xs tracking-[4px] uppercase text-[#C9536A] mb-2">
-        TIPS
+        TIPS💡
       </div>
-      <h2 className="text-3xl font-serif text-[#1A0A0E]">
-        Beauty Guids
+      <h2 className="text-2xl font-serif text-[#1A0A0E]">
+        BEAUTY GUIDES
       </h2>
     </div>
 
     <button
-      onClick={() => navigate("/guides")}
+      onClick={() => navigate("/guide")}
       className="border border-[#1A0A0E] px-6 py-3 text-xs uppercase text-black tracking-widest hover:bg-[#C9536A] hover:text-white transition duration-300"
     >
       View All
@@ -233,7 +235,7 @@ const Home = () => {
     {videoIds.map((id, index) => (
       <div
         key={index}
-        className="w-full max-w-[580x] aspect-[12/16] rounded-3xl overflow-hidden shadow-lg bg\ border border-pink-200 hover:scale-105 transition duration-500"
+        className="w-full max-w-[580x] h-[400px] rounded-3xl overflow-hidden shadow-lg border border-pink-200 hover:scale-105 transition duration-500"
       >
         <iframe
           src={`https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`}
