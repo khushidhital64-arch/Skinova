@@ -4,7 +4,7 @@ import { PlayCircle, BookOpen, Sparkles } from "lucide-react";
 
 const videoIds = [
   "UyBMKPlEw0U",
-  "UyBMKPlEw0U", // change this to different video IDs later
+  "UyBMKPlEw0d", 
   "UyBMKPlEw0U"
 ];
 
